@@ -1,0 +1,42 @@
+name: CI
+# 推送/PR:compose 模板校验 + TOS7 骨架 lint + 部署包 zip 组装断言
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: compose 模板校验
+        run: docker compose -f deploy/compose.yml config -q
+      - name: TOS7 config.ini 可解析 + 关键字段
+        run: |
+          python3 - <<'EOF'
+          import json
+          cfg = json.load(open('tos7/config.ini'))
+          assert cfg['id'] == 'filescodebox'
+          assert cfg['application_type'] == 'docker'
+          assert cfg['depend'] == ['DockerEngine']
+          print('config.ini OK')
+          EOF
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 组装部署包 zip(CI 版本 0.0.0)
+        run: ./scripts/build-zip.sh 0.0.0
+      - name: 结构断言
+        run: |
+          unzip -l dist/filescodebox-terramaster-0.0.0.zip | grep -q compose.yml
+          unzip -l dist/filescodebox-terramaster-0.0.0.zip | grep -q env.example
+          unzip -l dist/filescodebox-terramaster-0.0.0.zip | grep -q 安装指引.md
+      - uses: actions/upload-artifact@v4
+        with:
+          name: deploy-kit
+          path: dist/*.zip
+          retention-days: 14
+          if-no-files-found: error
