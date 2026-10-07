@@ -8,7 +8,7 @@ v0.1 交付形态是「Docker Manager → 项目 → 上传/粘贴 compose」(�
 - TOS 7 新应用只收 **Deb 与 Docker 应用**两种格式,tpk 提交通道已关闭;
   Docker 应用 = `config.ini` + `<appid>.lang` + `<appid>.svg` + `docker-compose.yml` 四文件 tar.gz
 - **应用商店拒收 ghcr.io / quay.io 镜像**(只允许 Docker Hub)——送审硬前置:
-  需先把 `ghcr.io/filescodebox/server|frontend` 同步发布到 Docker Hub
+  需先把 `ghcr.io/pigeonbox/server|frontend` 同步发布到 Docker Hub
   (生态层决策,需在 server 仓 release 流水线加 Docker Hub 推送,待拍板)
 - compose 强校验规则(模板 README 原文):禁 latest / 禁 privileged / 禁 host 网络 /
   数据必须挂 `/Volume*/DockerAppData/<appid>/` / 每服务必须有 healthcheck /
@@ -21,8 +21,8 @@ v0.1 交付形态是「Docker Manager → 项目 → 上传/粘贴 compose」(�
 
 ## 目录现状(二期启动时)
 
-- `config.ini` / `filescodebox.svg` 已按模板字段预置(未经官方模板 diff 校验)
-- 缺:`filescodebox.lang`(14 语言文件,可先只填 zh-cn/en-us)、适配 `DockerAppData`
+- `config.ini` / `pigeonbox.svg` 已按模板字段预置(未经官方模板 diff 校验)
+- 缺:`pigeonbox.lang`(14 语言文件,可先只填 zh-cn/en-us)、适配 `DockerAppData`
   路径与 `x-app-meta` 的专用 compose(现有 `deploy/compose.yml` 不可直接复用)
 
 ## 参考实现

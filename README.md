@@ -1,10 +1,10 @@
-# FilesCodeBox TerraMaster TOS
+# PigeonBox TerraMaster TOS
 
-[![CI](https://github.com/filescodebox/terramaster/actions/workflows/ci.yml/badge.svg)](https://github.com/filescodebox/terramaster/actions/workflows/ci.yml)
-[![Release](https://github.com/filescodebox/terramaster/actions/workflows/release.yml/badge.svg)](https://github.com/filescodebox/terramaster/releases)
+[![CI](https://github.com/pigeonbox/terramaster/actions/workflows/ci.yml/badge.svg)](https://github.com/pigeonbox/terramaster/actions/workflows/ci.yml)
+[![Release](https://github.com/pigeonbox/terramaster/actions/workflows/release.yml/badge.svg)](https://github.com/pigeonbox/terramaster/releases)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
-FilesCodeBox（文件快递柜，匿名口令分享文本/文件）的 **铁威马 TerraMaster TOS 部署包**：官方 Docker 镜像（`ghcr.io/filescodebox/server` + `frontend`）的 docker compose 项目导入部署。
+PigeonBox（文件快递柜，匿名口令分享文本/文件）的 **铁威马 TerraMaster TOS 部署包**：官方 Docker 镜像（`ghcr.io/pigeonbox/server` + `frontend`）的 docker compose 项目导入部署。
 
 - **TOS 5 / 6 / 7 全覆盖**：三代的 Docker 管理器都有「项目」功能，导入即部署
 - 默认端口 `12345` 合规（TOS 保留 22/80/443/8181/5050，推荐第三方用 8000-19999）
@@ -19,9 +19,9 @@ FilesCodeBox（文件快递柜，匿名口令分享文本/文件）的 **铁威�
 ## 安装（5 分钟）
 
 1. 应用中心确认已装 **Docker**（TOS 7 叫 Container/ Docker Manager；TOS 7 未装会提示自动装 DockerEngine）
-2. 下载本仓 [Releases](https://github.com/filescodebox/terramaster/releases) 的部署包 zip 并解压
+2. 下载本仓 [Releases](https://github.com/pigeonbox/terramaster/releases) 的部署包 zip 并解压
 3. 打开 **Docker Manager**（Docker 应用）→ 左侧 **项目** → 右上角 **添加**
-4. 项目名 `filescodebox`，项目路径选数据卷（如 `/Volume1/Docker/filescodebox`），
+4. 项目名 `pigeonbox`，项目路径选数据卷（如 `/Volume1/Docker/pigeonbox`），
    配置来源选「**你的电脑**」上传 `compose.yml`（或「创建 YAML 文件」后把全文粘入）
 5. 点 **验证 YAML**（校验通过「应用」才可点）→ **应用**
 6. 浏览器访问 `http://NAS的IP:12345`，默认管理员 `admin/admin123`——**装完先改密码**
@@ -31,7 +31,7 @@ FilesCodeBox（文件快递柜，匿名口令分享文本/文件）的 **铁威�
 | 位置 | 默认 | 说明 |
 |---|---|---|
 | `ports: "12345:8080"` | `12345` | 对外端口（避开 22/80/443/8181/5050） |
-| `/volume1/docker/filescodebox/data:/app/data` | 见左 | 数据目录（建议改到数据卷，如 `/Volume1/Docker/filescodebox/data`） |
+| `/volume1/docker/pigeonbox/data:/app/data` | 见左 | 数据目录（建议改到数据卷，如 `/Volume1/Docker/pigeonbox/data`） |
 | `FCB_ADMIN_PASSWORD` | 空 | 管理员密码（留空=`admin123`） |
 | `FCB_USER_ALLOW_REGISTRATION` | `false` | 开放注册开关 |
 
@@ -41,13 +41,13 @@ FilesCodeBox（文件快递柜，匿名口令分享文本/文件）的 **铁威�
 
 TOS 的 `registry-mirrors` 加速只对 docker.io 生效，对 ghcr 无效，可行做法：
 
-- 镜像前缀替换：`ghcr.io/filescodebox/server` → `ghcr.nju.edu.cn/filescodebox/server`（改 compose 后重新部署）
+- 镜像前缀替换：`ghcr.io/pigeonbox/server` → `ghcr.nju.edu.cn/pigeonbox/server`（改 compose 后重新部署）
 - 离线导入：任意外网机器 `docker pull` + `docker save` 出 tar，上传 NAS 后
   Docker Manager → 本地镜像 → 导入，再部署项目
 
 ## 数据与备份
 
-- 数据全在 compose 里的数据目录（默认 `/volume1/docker/filescodebox/data`：
+- 数据全在 compose 里的数据目录（默认 `/volume1/docker/pigeonbox/data`：
   `fileCodeBox.db`、上传文件、`.jwt_secret`；**建议放到数据卷**）
 - 备份 = 停止项目后复制该目录
 - 删除项目**不会**删数据目录；彻底清理请手动删除
@@ -63,13 +63,13 @@ TOS 的 `registry-mirrors` 加速只对 docker.io 生效，对 ghcr 无效，可
 
 ## 升级
 
-改 compose 里两处镜像 tag（`server`/`frontend` 的 `:vX.Y.Z`，与 [server 仓 Releases](https://github.com/filescodebox/server/releases) 对齐）→ 重新部署。数据目录不动，配置/数据全保留。
+改 compose 里两处镜像 tag（`server`/`frontend` 的 `:vX.Y.Z`，与 [server 仓 Releases](https://github.com/pigeonbox/server/releases) 对齐）→ 重新部署。数据目录不动，配置/数据全保留。
 
 ## 开发与构建
 
-共享资产（`compose.yml` / `env.example`）的**真相源在生态主仓 [`deploy/nas/`](https://github.com/filescodebox/filescodebox/tree/main/deploy/nas)**：改编排/默认值请改 hub 模板后执行 `bash deploy/nas/sync.sh sync`，**勿直接改本仓这两个文件**——CI 有「与 hub 模板对齐」漂移门禁，模板一动未同步的仓全部变红。跟随 server 新镜像版本走发版列车：hub 仓 `scripts/nas-release-train.sh <镜像tag> --push` 一条命令完成四处钉版+打 tag。
+共享资产（`compose.yml` / `env.example`）的**真相源在生态主仓 [`deploy/nas/`](https://github.com/pigeonbox/pigeonbox/tree/main/deploy/nas)**：改编排/默认值请改 hub 模板后执行 `bash deploy/nas/sync.sh sync`，**勿直接改本仓这两个文件**——CI 有「与 hub 模板对齐」漂移门禁，模板一动未同步的仓全部变红。跟随 server 新镜像版本走发版列车：hub 仓 `scripts/nas-release-train.sh <镜像tag> --push` 一条命令完成四处钉版+打 tag。
 ```sh
-./scripts/build-zip.sh 0.1.0     # → dist/filescodebox-terramaster-0.1.0.zip(发布资产)
+./scripts/build-zip.sh 0.1.0     # → dist/pigeonbox-terramaster-0.1.0.zip(发布资产)
 docker compose -f deploy/compose.yml config -q   # 模板校验
 ```
 

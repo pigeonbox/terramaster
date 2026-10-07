@@ -9,7 +9,7 @@ VERSION="${1:?用法: build-zip.sh <版本>(例: 0.1.0)}"
 STAGE="$(mktemp -d)"
 trap 'rm -rf "$STAGE"' EXIT
 
-OUT="dist/filescodebox-terramaster-${VERSION}.zip"
+OUT="dist/pigeonbox-terramaster-${VERSION}.zip"
 mkdir -p dist
 # 文本压 LF(上传 TOS 与 Windows 下载解压场景都不被 CRLF 坑)
 for f in deploy/compose.yml deploy/env.example README.md; do
