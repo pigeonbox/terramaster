@@ -22,9 +22,9 @@ PigeonBox（文件快递柜，匿名口令分享文本/文件）的 **铁威马 
 2. 下载本仓 [Releases](https://github.com/pigeonbox/terramaster/releases) 的部署包 zip 并解压
 3. 打开 **Docker Manager**（Docker 应用）→ 左侧 **项目** → 右上角 **添加**
 4. 项目名 `pigeonbox`，项目路径选数据卷（如 `/Volume1/Docker/pigeonbox`），
-   配置来源选「**你的电脑**」上传 `compose.yml`（或「创建 YAML 文件」后把全文粘入）
+   配置来源选「**你的电脑**」上传 `compose.yml`（或「创建 YAML 文件」后把全文粘入），并把 `PB_ADMIN_PASSWORD` 一行改为你的强密码（**必填**：安全生产模式，留空=容器拒绝启动）
 5. 点 **验证 YAML**（校验通过「应用」才可点）→ **应用**
-6. 浏览器访问 `http://NAS的IP:12345`，默认管理员 `admin/admin123`——**装完先改密码**
+6. 浏览器访问 `http://NAS的IP:12345`，管理员 `admin`，密码=第 4 步设置的值
 
 ### 常用调参（导入前直接在 YAML 里改）
 
@@ -32,8 +32,8 @@ PigeonBox（文件快递柜，匿名口令分享文本/文件）的 **铁威马 
 |---|---|---|
 | `ports: "12345:8080"` | `12345` | 对外端口（避开 22/80/443/8181/5050） |
 | `/volume1/docker/pigeonbox/data:/app/data` | 见左 | 数据目录（建议改到数据卷，如 `/Volume1/Docker/pigeonbox/data`） |
-| `FCB_ADMIN_PASSWORD` | 空 | 管理员密码（留空=`admin123`） |
-| `FCB_USER_ALLOW_REGISTRATION` | `false` | 开放注册开关 |
+| `PB_ADMIN_PASSWORD` | 空 | 管理员密码（**必填**：留空=容器拒绝启动；首次启动以此建号） |
+| `PB_USER_ALLOW_REGISTRATION` | `false` | 开放注册开关 |
 
 装好后的日常修改：Docker Manager → 项目 → 编辑 compose → 重新部署，配置持久在项目里。
 
