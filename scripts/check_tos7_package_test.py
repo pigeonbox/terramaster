@@ -210,6 +210,16 @@ def m_quay_image(pkg: str) -> None:
     write(f, s2)
 
 
+def m_no_logging(pkg: str) -> None:
+    """删掉第一个服务的 logging 段（terramaster#154 的原始缺陷形态）。"""
+    f = os.path.join(pkg, "docker-compose.yml")
+    s = read(f)
+    s2 = re.sub(r"\n    logging:\n(?:      [^\n]*\n)+", "\n", s, count=1)
+    if s2 == s:
+        raise AssertionError("m_no_logging 变异未生效：compose 里没有 logging 段")
+    write(f, s2)
+
+
 CASES = [
     ("镜像用 :latest", m_latest, "latest"),
     ("privileged: true", m_privileged, "privileged"),
@@ -234,6 +244,7 @@ CASES = [
     ("svg 不是 svg", m_bad_svg, "不是 SVG"),
     ("镜像源是 ghcr.io（TOS 拒收）", m_ghcr_image, "Docker Hub"),
     ("镜像源是 quay.io（TOS 拒收）", m_quay_image, "Docker Hub"),
+    ("服务缺 logging 段", m_no_logging, "logging"),
 ]
 
 

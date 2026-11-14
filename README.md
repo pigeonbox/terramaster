@@ -64,7 +64,17 @@ TOS 的 `registry-mirrors` 加速只对 docker.io 生效，对 ghcr 无效，可
 
 ## 升级
 
-改 compose 里两处镜像 tag（`server`/`frontend` 的 `:vX.Y.Z`，与 [server 仓 Releases](https://github.com/pigeonbox/server/releases) 对齐）→ 重新部署。数据目录不动，配置/数据全保留。
+⚠️ **升级前必须先停止应用并复制数据目录**——本端是 compose 编排，**没有**四端原生包
+（fnOS/QTS/OpenWrt/群晖）那样的升级前自动库快照（`<db>.bak-<时间戳>`，统一口径见
+[hub docs/UPGRADE.md](https://github.com/pigeonbox/pigeonbox/blob/main/docs/UPGRADE.md)），
+改 tag 撞上不可逆 schema 迁移时将**没有回滚点**：
+
+1. 停止应用（TOS Docker Manager → 项目 → 停止，或 `docker compose stop`）
+2. 复制数据目录（compose 里的数据目录，默认 `/volume1/docker/pigeonbox/data`：
+   `fileCodeBox.db`、上传文件、`.jwt_secret`）到安全位置——备份它 = 备份全部数据
+   （见上「数据与备份」）
+
+然后再改 compose 里两处镜像 tag（`server`/`frontend` 的 `:vX.Y.Z`，与 [server 仓 Releases](https://github.com/pigeonbox/server/releases) 对齐）→ 重新部署。数据目录不动，配置/数据全保留。
 
 ## 开发与构建
 
