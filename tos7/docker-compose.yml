@@ -74,6 +74,13 @@ services:
       timeout: 5s
       start_period: 15s
       retries: 3
+    # 👇 日志上限(生态统一 json-file 10m×3):docker 默认 json-file 无上限 ⇒ 长期
+    #    运行会占满 TOS 系统盘。注释只在 volumes/ports 序列内禁(§9.3-3),此处可写。
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   pigeonbox-frontend:
     image: docker.io/pigeonbox/frontend:5.8.0
@@ -103,6 +110,12 @@ services:
       timeout: 5s
       start_period: 10s
       retries: 3
+    # 👇 日志上限:同 pigeonbox 服务(terramaster#154)
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 # ============================================================
 # x-app-meta —— Web UI 应用必填（§9.3-2），必须附在**文件末尾**。

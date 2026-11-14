@@ -18,6 +18,9 @@ CI 强制：包漂了当场红，不等到送审被平台打回。
 # 两级判定
 
 - **红灯（规则违规）**：违反 TOS 平台的硬规则 ⇒ 送审必被打回 ⇒ 退出码非 0。
+  另含**本生态自有硬规则**（非平台要求，2026-11-14 起）：每服务必须有 logging
+  日志上限（terramaster#154）——docker 默认 json-file 无上限会占满 TOS 系统盘；
+  违反它虽不必然被平台打回，但会烧掉用户磁盘 ⇒ 与硬规则同级拦截。
 - **黄灯（送审前置未就绪）**：不是本仓能单方面决定的 ⇒ 只提示，不阻断。
   当前一条：黄灯 compose 里的镜像 tag 与本仓 VERSION 不一致。
   ⇒ 该条现为**漂移哨兵**：`tos7/docker-compose.yml` 已进列车 bump 的物化清单
@@ -352,6 +355,20 @@ def check_compose(appid: str, cfg: dict) -> None:
     for name, body in services.items():
         if not any(re.match(r"^\s*healthcheck\s*:", l) for l in body):
             fail(f"服务 {name} 缺 healthcheck（§9.3-10：每个服务都必须有）")
+
+    # 生态自有规则（非平台硬规则）：logging 日志上限（terramaster#154）
+    # docker 默认 json-file 驱动无上限 ⇒ 长期运行占满 TOS 系统盘。
+    # 参数对照仓根 deploy/compose.yml（json-file / max-size / max-file）。
+    for name, body in services.items():
+        if not any(re.match(r"^\s*logging\s*:", l) for l in body):
+            fail(f"服务 {name} 缺 logging 段"
+                 f"（docker 默认日志无上限会占满系统盘，terramaster#154）")
+            continue
+        body_text = "\n".join(body)
+        if not re.search(r"^\s*max-size\s*:", body_text, re.M):
+            fail(f"服务 {name} 的 logging 缺 max-size（无上限等于没限，terramaster#154）")
+        if not re.search(r"^\s*max-file\s*:", body_text, re.M):
+            fail(f"服务 {name} 的 logging 缺 max-file（无上限等于没限，terramaster#154）")
 
     # §9.3-2 x-app-meta：必须在文件末尾，且含 web.port / web.protocol
     top_lines = [l for l in lines if re.match(r"^[A-Za-z_][\w-]*\s*:", l)]
