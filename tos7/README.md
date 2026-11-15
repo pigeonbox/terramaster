@@ -51,7 +51,7 @@ pigeonbox.tar.gz
 | 服务 | 镜像 | 运行用户 | 出处 |
 |---|---|---|---|
 | `pigeonbox` | `ghcr.io/pigeonbox/server` | `1000:1000` | `server/Dockerfile`：`adduser -D -u 1000` + `USER app` |
-| `pigeonbox-frontend` | `ghcr.io/pigeonbox/frontend` | `101:101` | `frontend-core/Dockerfile`：基于 `nginxinc/nginx-unprivileged`（uid/gid=101 非 root） |
+| `pigeonbox-frontend` | `ghcr.io/pigeonbox/frontend` | `101:101` | `frontend/Dockerfile`（frontend 仓）：基于 `nginxinc/nginx-unprivileged`（uid/gid=101 非 root）。frontend-core 是库线，不提供镜像 Dockerfile（其重复副本已删除，pigeonbox/frontend-core#106） |
 
 官方规则原文：「If the image hard-codes its runtime user and does not support PUID/PGID,
 set it to that image's own UID:GID（guide 10.3.1）」——本包正是这种情况。
