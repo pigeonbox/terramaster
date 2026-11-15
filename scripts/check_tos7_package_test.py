@@ -220,6 +220,16 @@ def m_no_logging(pkg: str) -> None:
     write(f, s2)
 
 
+def m_no_cap_drop(pkg: str) -> None:
+    """删掉第一个服务的 cap_drop（hub#362 的原始缺陷形态）。"""
+    f = os.path.join(pkg, "docker-compose.yml")
+    s = read(f)
+    s2 = re.sub(r"\n    cap_drop: \[ALL\]\n", "\n", s, count=1)
+    if s2 == s:
+        raise AssertionError("m_no_cap_drop 变异未生效：compose 里没有 cap_drop")
+    write(f, s2)
+
+
 CASES = [
     ("镜像用 :latest", m_latest, "latest"),
     ("privileged: true", m_privileged, "privileged"),
@@ -245,6 +255,7 @@ CASES = [
     ("镜像源是 ghcr.io（TOS 拒收）", m_ghcr_image, "Docker Hub"),
     ("镜像源是 quay.io（TOS 拒收）", m_quay_image, "Docker Hub"),
     ("服务缺 logging 段", m_no_logging, "logging"),
+    ("服务缺 cap_drop", m_no_cap_drop, "cap_drop"),
 ]
 
 

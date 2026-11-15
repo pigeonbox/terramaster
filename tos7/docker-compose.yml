@@ -51,6 +51,9 @@ services:
     #    TOS 应用商店只收 Docker Hub；生态镜像线已双推 ghcr + Docker Hub。
     image: docker.io/pigeonbox/server:5.8.0
     container_name: pigeonbox-server
+    # 👇 全能力降权（hub#362：与 K8s 面 drop: ALL 对齐；端口 >1024 无需
+    #    NET_BIND_SERVICE，镜像无 ping/原始套接字需求）
+    cap_drop: [ALL]
     restart: unless-stopped
     # 👇 数据持久化：bind mount 相对路径（平台落到应用数据根）。
     #    ⛔ 序列内不得出现注释行（§9.3-3）
@@ -85,6 +88,8 @@ services:
   pigeonbox-frontend:
     image: docker.io/pigeonbox/frontend:5.8.0
     container_name: pigeonbox-frontend
+    # 👇 全能力降权（hub#362，同 pigeonbox 服务）
+    cap_drop: [ALL]
     restart: unless-stopped
     # 👇 host 端口 12345（不在禁用清单内，落在推荐区间 8000-19999）
     #    ⛔ 序列内不得出现注释行（§9.3-3）
