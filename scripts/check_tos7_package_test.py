@@ -230,6 +230,28 @@ def m_no_cap_drop(pkg: str) -> None:
     write(f, s2)
 
 
+def m_cap_drop_not_all(pkg: str) -> None:
+    """把 cap_drop 从 [ALL] 改成只降一个非 ALL 能力（必须仍判红）。"""
+    f = os.path.join(pkg, "docker-compose.yml")
+    s = read(f)
+    s2 = s.replace("cap_drop: [ALL]", "cap_drop: [NET_BIND_SERVICE]", 1)
+    if s2 == s:
+        raise AssertionError(
+            "m_cap_drop_not_all 变异未生效：compose 里没有 cap_drop: [ALL]")
+    write(f, s2)
+
+
+def m_cap_add(pkg: str) -> None:
+    """cap_drop: [ALL] 之后又 cap_add 回加 NET_RAW（必须判红）。"""
+    f = os.path.join(pkg, "docker-compose.yml")
+    s = read(f)
+    s2 = s.replace("    cap_drop: [ALL]\n",
+                   "    cap_drop: [ALL]\n    cap_add: [NET_RAW]\n", 1)
+    if s2 == s:
+        raise AssertionError("m_cap_add 变异未生效：compose 里没有 cap_drop: [ALL]")
+    write(f, s2)
+
+
 CASES = [
     ("镜像用 :latest", m_latest, "latest"),
     ("privileged: true", m_privileged, "privileged"),
@@ -256,6 +278,8 @@ CASES = [
     ("镜像源是 quay.io（TOS 拒收）", m_quay_image, "Docker Hub"),
     ("服务缺 logging 段", m_no_logging, "logging"),
     ("服务缺 cap_drop", m_no_cap_drop, "cap_drop"),
+    ("cap_drop 未全量（只降 NET_BIND_SERVICE）", m_cap_drop_not_all, "cap_drop"),
+    ("cap_drop 后又 cap_add 回加能力", m_cap_add, "cap_add"),
 ]
 
 

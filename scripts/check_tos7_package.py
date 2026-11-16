@@ -373,14 +373,19 @@ def check_compose(appid: str, cfg: dict) -> None:
     # 生态自有规则：cap_drop 全量降权（hub#362，与 K8s 面 drop: ALL 对齐）
     # docker 默认保留全量 capabilities（即便非 root 运行）；两个服务的端口都
     # >1024 ⇒ 无需 NET_BIND_SERVICE，镜像无 ping/原始套接字需求 ⇒ 可以全降。
+    # 只接受恰好 [ALL]：`[ALL, NET_RAW]` 或 cap_add 回加能力都等于没全降。
     for name, body in services.items():
         cap_idx = [i for i, l in enumerate(body) if re.match(r"^\s*cap_drop\s*:", l)]
         if not cap_idx:
             fail(f"服务 {name} 缺 cap_drop（hub#362：容器编排面与 K8s 面 drop: ALL 对齐）")
             continue
-        window = "\n".join(body[cap_idx[0]:cap_idx[0] + 3])
-        if not re.search(r"[\"']?ALL[\"']?", window):
-            fail(f"服务 {name} 的 cap_drop 未含 ALL（hub#362：必须全量降权）")
+        value = body[cap_idx[0]].split(":", 1)[1].strip()
+        if not re.fullmatch(r"\[\s*[\"']?ALL[\"']?\s*\]", value):
+            fail(f"服务 {name} 的 cap_drop 必须是 [ALL]（当前 {value!r}；"
+                 f"hub#362：多留任何 capability 都不算全量降权）")
+        if any(re.match(r"^\s*cap_add\s*:", l) for l in body):
+            fail(f"服务 {name} 用了 cap_add 回加能力（hub#362：必须全量降权，"
+                 f"确有依赖请先在 issue 里说明最小集合）")
 
     # §9.3-2 x-app-meta：必须在文件末尾，且含 web.port / web.protocol
     top_lines = [l for l in lines if re.match(r"^[A-Za-z_][\w-]*\s*:", l)]
