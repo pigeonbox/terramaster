@@ -26,7 +26,10 @@ set -eu
 
 APPID="${1:-pigeonbox}"
 PLATFORM="${2:-x86_64}"
-ROOT="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
+# ⚠️ `CDPATH='' cd`：POSIX 里「赋值前置」的作用域只覆盖这一条命令 ⇒ cd 不会因
+#    CDPATH 里的相对路径而跑偏。（写成 `CDPATH=''` 是为了消掉 shellcheck SC1007：
+#    `CDPATH= cd` 会被当成漏了引号的赋值。）
+ROOT="$(CDPATH='' cd -- "$(dirname -- "$0")/.." && pwd)"
 PKG_DIR="$ROOT/tos7"
 OUT_DIR="$ROOT/dist"
 OUT="$OUT_DIR/${APPID}-${PLATFORM}.tar.gz"
@@ -35,8 +38,11 @@ cd "$ROOT"
 
 # 平台取值必须是官方那两个（config.ini 的 platform 字段只接受这两个）
 case "$PLATFORM" in
-  x86_64|aarch64) ;;
-  *) echo "✗ platform 只能是 x86_64 或 aarch64，实际 $PLATFORM" >&2; exit 1 ;;
+  x86_64 | aarch64) ;;
+  *)
+    echo "✗ platform 只能是 x86_64 或 aarch64，实际 $PLATFORM" >&2
+    exit 1
+    ;;
 esac
 
 # ① 合规校验：有红灯（违反 TOS 硬规则）就不打包
@@ -54,12 +60,17 @@ done
 #    （config.ini 虽是 .ini 后缀，内容其实是 JSON ⇒ 用 python 改写，零依赖）
 STAGE="$(mktemp -d)"
 OK=0
+# ⚠️ 本脚本是 **POSIX sh**（CI 的 ubuntu 跑在 dash 上）⇒ 按 C1 **不引 shellkit**
+#    （shellkit 的库基线是 bash 3.2+：内部用数组 ⇒ 进不了 dash）。
+#    ⇒ 临时目录的清理与「成功哨兵」退出码语义**保留手写**（与 ugreen/build-zip.sh
+#    改造前的形态逐字一致）。
+# shellcheck disable=SC2154  # rc 在 trap 体内赋值，shellcheck 看不见
 trap 'rc=$?; rm -rf "$STAGE"; if [ "$rc" -ne 0 ]; then exit $rc; fi; if [ "$OK" != 1 ]; then exit 1; fi; exit 0' EXIT
 cp "$PKG_DIR/config.ini" "$STAGE/config.ini"
 cp "$PKG_DIR/${APPID}.lang" "$STAGE/"
 cp "$PKG_DIR/${APPID}.svg" "$STAGE/"
 cp "$PKG_DIR/docker-compose.yml" "$STAGE/"
-PRODUCT_VER="$(tr -d '[:space:]' < "$ROOT/VERSION")"
+PRODUCT_VER="$(tr -d '[:space:]' <"$ROOT/VERSION")"
 python3 - "$STAGE/config.ini" "$PLATFORM" "$PRODUCT_VER" <<'PYEOF'
 import json
 import sys
@@ -101,7 +112,8 @@ COPYFILE_DISABLE=1 tar -czf "$OUT" -C "$STAGE" \
 #    退出码非 0 ⇒ `set -e` 下脚本立刻中止（**不能只报错还 exit 0**——
 #    2026-10-31 实测：末尾 echo 引用未定义变量时，macOS 的 /bin/sh 打印
 #    "unbound variable" 却**仍以 0 退出** ⇒ 本地 `&&` 链假绿、CI 才红）。
-count=$(python3 - "$OUT" <<'PYEOF'
+count=$(
+  python3 - "$OUT" <<'PYEOF'
 import sys
 import tarfile
 
